@@ -12,6 +12,7 @@ def error():
 
 @app.route('/')
 def index():
+    'rendering templates'
     return render_template('atm2.html')
 class ATM:
     '''welcome to the ATM'''

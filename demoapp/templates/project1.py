@@ -9,6 +9,7 @@ def error():
     return'<html><body><h>you entered wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
 @app.route('/')
 def index():
+    "landiing page"
     return render_template('atm2.html')
 @app.route('/verify',methods=['POST','GET'])
 def verify_pin():
