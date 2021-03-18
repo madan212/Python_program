@@ -6,6 +6,7 @@ app=Flask(__name__)
 
 @app.route('/error')
 def error():
+    "raising errors"
     return'<html><body><h>you entered wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
 @app.route('/')
 def index():
