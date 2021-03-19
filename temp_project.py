@@ -176,7 +176,7 @@ def balance(option):
                 acc.deposit(amount)'''
                 
                 x=acc.display()
-                #c1=customer_details(balance=x)
+                c1=customer_details(balance=x)
                 #db.session.add(c1)
                 #db.session.commit()
                 return render_template('atm6.html',x=x)
