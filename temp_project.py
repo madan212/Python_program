@@ -7,6 +7,7 @@ from flask import *
 from flask_sqlalchemy import SQLAlchemy
 
 app=Flask(__name__,instance_relative_config=True)
+#connecting db
 app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'C:/Users/ADMIN/Documents/SQL Server Management Studio/atm1.sql'),)
 app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://MySQLServerName/MyTestDb?driver=SQL+Server?trusted_connection=yes"
 #app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
