@@ -5,13 +5,22 @@ import os
 from random import randint
 from flask import *
 from flask_sqlalchemy import SQLAlchemy
+from pyodbc import *
+
 
 app=Flask(__name__,instance_relative_config=True)
+import pdb
+pdb.set_trace()
 #connecting db using mssql
-app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'C:/Users/ADMIN/Documents/SQL Server Management Studio/atm1.sql'),)
-app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://MySQLServerName/MyTestDb?driver=SQL+Server?trusted_connection=yes"
-#app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'F:/Program Files/Microsoft SQL Server/MSSQL15.MSSQLSERVER/MSSQL'))
+
+#app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'C:/Users/ADMIN/Documents/SQL Server Management Studio/atm1.sql'))
+app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/atm2?driver=SQL+Server?trusted_connection=yes"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db=SQLAlchemy(app)
+
+#db.engine.connect()
+#db.table_names()
 #logging.basicConfig(level=logging.DEBUG, format='%(asctime)s -  %(levelname)s -  %(message)s',filename='logfile1.txt')
 #logging.debug('start ATM program')
 #def __init__(self,pin,withdraw,deposit_amount):
@@ -21,6 +30,7 @@ db=SQLAlchemy(app)
 
 @app.route('/error')
 def error():
+
     return'<html><body><h>you entered wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
 
 @app.route('/')
