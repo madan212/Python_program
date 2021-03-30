@@ -5,22 +5,22 @@ import os
 from random import randint
 from flask import *
 from flask_sqlalchemy import SQLAlchemy
-from pyodbc import *
-
+from datetime import datetime
 
 app=Flask(__name__,instance_relative_config=True)
-import pdb
-pdb.set_trace()
-#connecting db using mssql
+#import pdb
+#pdb.set_trace()
+
+#app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'C:/Users/ADMIN/Documents/SQL Server Management Studio/atm1.sql'),)
 app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'F:/Program Files/Microsoft SQL Server/MSSQL15.MSSQLSERVER/MSSQL'))
 
-#app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'C:/Users/ADMIN/Documents/SQL Server Management Studio/atm1.sql'))
-app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/atm2?driver=SQL+Server?trusted_connection=yes"
+app.config['SQLALCHEMY_ECHO'] = True
+#app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/MyTestDb?driver=SQL+Server?trusted_connection=yes"
+app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/atm?driver=SQL+Server?trusted_connection=yes"
+
+#app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://MySQLServerName/MyTestDb?driver=SQL+Server?trusted_connection=yes"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db=SQLAlchemy(app)
-
-#db.engine.connect()
-#db.table_names()
 #logging.basicConfig(level=logging.DEBUG, format='%(asctime)s -  %(levelname)s -  %(message)s',filename='logfile1.txt')
 #logging.debug('start ATM program')
 #def __init__(self,pin,withdraw,deposit_amount):
@@ -28,9 +28,74 @@ db=SQLAlchemy(app)
     #self.withdraw=withdraw
     #self.deposit_amount=deposit_amount
 
+
+'''def create_app(test_config=None):
+    if test_config is None:
+    # load the instance config, if it exists, when not testing
+        app.config.from_pyfile('config.py', silent=True)
+    else:
+    # load the test config if passed in
+        app.config.from_mapping(test_config)
+    # ensure the instance folder exists
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass'''
+
+
+#class credit(db.Model) :
+#    #__tablename__='credit'
+#    #id = db.Column('pin', db.Integer, primary_key = False)
+#    amount = db.Column(db.Integer)
+#    pin = db.Column(db.Integer)
+
+
+
+ #   def __init__(self,amount,pin):
+ #      ""
+ #       self.amount = amount
+ #       self.pin = pin
+
+class customer_details(db.Model) :
+    id = db.Column( db.Integer)
+    pin = db.Column(db.Integer,unique=True,nullable=False)
+    balance = db.Column(db.Integer,primary_key=True)
+
+    def __init__(self, balance,pin):
+       #self.name = name
+       self.balance =balance
+    
+       self.pin = pin
+
+class credit(db.Model):
+    deposit_amt=db.Column(db.Float,primary_key=True)
+    Transaction = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
+    balance= db.Column(db.Integer, db.ForeignKey('customer_details.balance'),nullable=False)
+    #category = db.relationship('customer_details',backref=db.backref('credit', lazy=True))
+    #category = db.relationship('Category',backref=db.backref('posts', lazy=True))
+
+    def __init__(self):
+        self.deposit_amt=deposit_amt
+
+
+
+class debit(db.Model):
+    #id = db.Column(db.Integer, primary_key=True)
+    withdraw_amt=db.Column(db.Float,nullable=False,unique=True,primary_key=True)
+    Transaction = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
+    balance= db.Column(db.Integer, db.ForeignKey('customer_details.balance'),nullable=False)
+    #customer_details = db.relationship('customer_details',backref=db.backref('debit', lazy=True))
+    
+
+    def __init__(self):
+        self.withdraw_amt=withdraw_amt
+
+    
+
+
+
 @app.route('/error')
 def error():
-
     return'<html><body><h>you entered wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
 
 @app.route('/')
@@ -43,13 +108,16 @@ class ATM:
         '''credentials of account.'''
         #balance=session.query(customer_details).filter(customer_details.pin==pin)
         self.balance = balance
+
         
     
     def login(self,pin):
         
         '''Logi credentials for ATM'''
         self.pin = pin
-        #self.customer_id = randint(1000,9999)
+        #self.id = randint(1000,9999)
+
+        #self.pin[self.id] = id
 
         pin_regex = re.compile(r'^[1-3]+\d{3}$')
         
@@ -97,6 +165,9 @@ class ATM:
         "providing the final results"
         #db.session.add(customer_details(balance=self.balance))
         ##db.session.commit()
+        import pdb
+        pdb.set_trace()
+        self.balance=db.session.query(customer_details).filter(customer_details.pin==3457)
         
         return self.balance
 
@@ -144,10 +215,17 @@ def verify():
         if request.method=='POST':
             match = ''
             pin = request.form['pin']
-            '''credentials=customer_details(pin=request.form['pin'])
-            db.session.add(credentials)
-            db.session.commit()'''
+            x=randint(1000,9999)
+            balance=db.session.query(customer_details).filter(customer_details.pin==pin)
+            #credentials=customer_details(pin=request.form['pin'],balance=balance,id == id )
+            #db.session.add(credentials)
+            #db.session.commit()
             mo = acc.login(pin)
+            if request.method=='POST':
+                credentials=customer_details(pin=request.form['pin'],balance=100)
+                db.session.add(credentials)
+                db.session.commit()
+
             
     
             try:
@@ -177,33 +255,43 @@ def verify():
 def balance(option):
     if request.method=='POST':
         while 1:
-
+            
             if option == 'deposit':
                 #"For deposit"
-                amount=int(request.form['amount'])
-                '''c1=credit(amount=request.form['amount'])
-                db.session.add(c1)
-                db.session.commit()
-                acc.deposit(amount)'''
-                
-                x=acc.display()
-                c1=customer_details(balance=x)
+                import pdb
+                pdb.set_trace()
+                deposit_amt=int(request.form['amount'])
+                #c1=credit(deposit_amt=request.form['amount'])
                 #db.session.add(c1)
                 #db.session.commit()
+                
+                
+                acc.deposit(deposit_amt)
+        
+                
+                x=acc.display()
+                if request.method=='POST':
+
+                    c1=credit(deposit_amt=request.form['amount'],balance=x)
+                    db.session.add(c1)
+                    db.session.commit()
+                    c3=customer_details(balance=x)
+                    db.session.add(c3)
+                    db.session.commit()
                 return render_template('atm6.html',x=x)
                 #break
             elif option == 'withdrawl':
                 #"reading withdraw"
                 amt=int(request.form['amount'])
-                c2=debit(amont=request.form['amount'])
+                c2=debit(withraw_amt=request.form['amount'])
                 db.session.add(c2)
                 db.session.commit()
                 if amt<acc.balance:
                     acc.withdraw(amt)
                     x=acc.display()
-                    '''c2=customer_details(balance=x)
+                    c2=customer_details(balance=x)
                     db.session.add(c2)
-                    db.session.commit()'''
+                    db.session.commit()
 
                     return render_template('atm6.html',x=x)
                 else:
@@ -228,6 +316,8 @@ def balance(option):
 
 
 if __name__=='__main__':
+    import pdb
+    pdb.set_trace()
     db.create_all()
     app.run(debug=True)
 
