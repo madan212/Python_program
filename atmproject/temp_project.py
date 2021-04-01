@@ -121,10 +121,12 @@ def index():
 class ATM:
     '''welcome to the ATM'''
     
-    def __init__(self,balance=0):
+    def __init__(self,pin=None,balance=0):
         '''credentials of account.'''
         #balance=session.query(customer_details).filter(customer_details.pin==pin)
         self.balance = balance
+        if pin:
+            self.pin=pin
 
         
     
@@ -296,19 +298,23 @@ def balance(option):
                 #c1=credit(deposit_amt=request.form['amount'])
                 #db.session.add(c1)
                 #db.session.commit()
+                z1=acc.getPin()
+            
+                y=customer_details.query.filter_by(pin=z1).first()
+                #bal=y.balance
                 
                 
-                bal = acc.deposit(amt)
+                
+                bal1 = acc.deposit(amt)
         
                 
                 x=acc.display()
                 #z1=verify()
-                z1=acc.getPin()
-            
+                
                 
                 #z=1
 
-                y=customer_details.query.filter_by(pin='3456').first()
+                #y=customer_details.query.filter_by(pin=z1).first()
                 y1=y.id
                 #y2=customer_details.query.get(id)
         
@@ -318,11 +324,17 @@ def balance(option):
             
 
                 c1=credit(deposit_amt=amt,balance=x,cus_id=y1)
+                #db.session.add(c1)
+                #db.session.commit()
+                
+                
                 db.session.add(c1)
-                db.session.commit()
                 #c3=customer_details(balance=x)
                 #db.session.add(c3)
-                #db.session.commit()
+                db.session.commit()
+                y1=customer_details.query.get(y1)
+                y1.balance=x
+                db.session.commit()
                 return render_template('atm6.html',x=x)
                 #break
             elif option == 'withdrawl':
@@ -333,17 +345,24 @@ def balance(option):
                 #c2=debit(withraw_amt=request.form['amount'])
                 #db.session.add(c2)
                 #db.session.commit()
-                amt1=credit.query.filter_by(Transaction_idn='1').first()
-                bal=amt1.balance
+                z2=acc.getPin()
+                y=customer_details.query.filter_by(pin=z2).first()
+                bal=y.balance
+                #amt1=credit.query.filter_by(Transaction_idn=y1).first()
+                #bal=amt1.balance
                 if amt<bal:
                     amount=amt
 
                     acc.withdraw(amount,bal)
                     x=acc.display()
-                    y=customer_details.query.filter_by(pin='3456').first()
+                    #z2=acc.getPin()
+                    #y=customer_details.query.filter_by(pin=z2).first()
                     y1=y.id
                     c2=debit(withdraw_amt=amount,balance=x,cus_id=y1)
                     #c2=customer_details(balance=x)
+                    y1=customer_details.query.get(y1)
+                    y1.balance=x
+                    #db.session.add(c1)
                     db.session.add(c2)
                     db.session.commit()
 
@@ -354,7 +373,10 @@ def balance(option):
                         
             elif option == 'balance':
                 "for balance enquiry"
-                x=acc.display()
+                #x=acc.display()
+                y4=acc.getPin()
+                y=customer_details.query.filter_by(pin=y4).first()
+                x=y.balance
                 return render_template('atm6.html',x=x)
                 #break
             else:
