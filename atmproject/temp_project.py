@@ -73,7 +73,7 @@ class credit(db.Model):
     Transaction_idn = db.Column(db.Integer,primary_key=True)
     deposit_amt=db.Column(db.Float)
     #balance= db.Column(db.Integer, db.ForeignKey('customer_details.balance'),nullable=False)
-    balance= db.Column(db.Integer, unique=True,nullable=False)
+    balance= db.Column(db.Integer,nullable=False)
     cus_id= db.Column(db.Integer, db.ForeignKey('customer_details.id'),nullable=False)
     crt_dt = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
     #customer_details = db.relationship('credit',order_by=customer_details.id,backref=db.backref('customer_details', lazy=True))
@@ -156,14 +156,17 @@ class ATM:
         "accessing for amount"
 
         return self.balance
+
     def getPin(self):
 
         "waiting for user response"
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         #self.balance=db.session.query(customer_details).filter(customer_details.pin==self.pin)
-
+        #if self.pin:
         return self.pin
+        #else : 
+        	#db.session.
 
     #@app.route('/withdrawl',methods=['POST','GET'])
     def withdraw(self,amount,bal):
@@ -177,11 +180,11 @@ class ATM:
         return self.balance
 
     #@app.route('/deposit',methods=['POST','GET'])
-    def deposit(self,amount):
+    def deposit(self,amount,bal):
 
         "Deposits are accepted"
 
-        self.balance += amount
+        self.balance = bal+amount
         return self.balance
 
     def display(self):
@@ -214,7 +217,7 @@ def menu():
 @app.route('/deposit',methods=['POST','GET'])
 def deposit():
     #bal=0
-    if request.method=='POST':
+    if request.method=='GET':
 
         #bal=amount
         res=make_response(render_template('atm4.html'))
@@ -225,7 +228,7 @@ def deposit():
 def withdrawl():
     #import pdb
     #pdb.set_trace()
-    if request.method=='POST':
+    if request.method=='GET':
         #amount==request.form['amount']
         #bal-=amount
         res=make_response(render_template('atm5.html'))
@@ -238,17 +241,17 @@ def verify():
     for i in range(1,3):
         if request.method=='POST':
             match = ''
-            pin = request.form['pin']
+            session['pin'] = request.form['pin']
             #x=randint(1000,9999)
             #balance=db.session.query(customer_details).filter(customer_details.pin==pin)
             #credentials=customer_details(pin=request.form['pin'],balance=balance,id == id )
             #db.session.add(credentials)
             #db.session.commit()
+            pin=session['pin']
             mo = acc.login(pin)
             if request.method=='POST':
-                import pdb
-                pdb.set_trace()
-                credentials=customer_details(pin=request.form['pin'])
+                
+                credentials=customer_details(pin=pin)
                 if not credentials.pin :
                     return '<html><body><h>invalid wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
                 #else:
@@ -292,8 +295,6 @@ def balance(option):
             
             if option == 'deposit':
                 #"For deposit"
-                import pdb
-                pdb.set_trace()
                 amt=int(request.form['amount'])
                 #c1=credit(deposit_amt=request.form['amount'])
                 #db.session.add(c1)
@@ -302,20 +303,22 @@ def balance(option):
             
                 y=customer_details.query.filter_by(pin=z1).first()
                 #bal=y.balance
+                y1=y.id
+                bal=y.balance
                 
                 
                 
-                bal1 = acc.deposit(amt)
+                bal1 = acc.deposit(amt,bal)
         
                 
-                x=acc.display()
+                #x=acc.display()
                 #z1=verify()
                 
                 
                 #z=1
 
                 #y=customer_details.query.filter_by(pin=z1).first()
-                y1=y.id
+                
                 #y2=customer_details.query.get(id)
         
     
@@ -323,7 +326,7 @@ def balance(option):
 
             
 
-                c1=credit(deposit_amt=amt,balance=x,cus_id=y1)
+                c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
                 #db.session.add(c1)
                 #db.session.commit()
                 
@@ -332,20 +335,22 @@ def balance(option):
                 #c3=customer_details(balance=x)
                 #db.session.add(c3)
                 db.session.commit()
+
                 y1=customer_details.query.get(y1)
-                y1.balance=x
+                y1.balance=bal1
                 db.session.commit()
-                return render_template('atm6.html',x=x)
+                return render_template('atm6.html',x=bal1)
                 #break
             elif option == 'withdrawl':
                 #"reading withdraw"
-                import pdb
-                pdb.set_trace()
+       
                 amt=int(request.form['amount'])
                 #c2=debit(withraw_amt=request.form['amount'])
                 #db.session.add(c2)
                 #db.session.commit()
                 z2=acc.getPin()
+                import pdb
+                pdb.set_trace()
                 y=customer_details.query.filter_by(pin=z2).first()
                 bal=y.balance
                 #amt1=credit.query.filter_by(Transaction_idn=y1).first()
@@ -353,20 +358,20 @@ def balance(option):
                 if amt<bal:
                     amount=amt
 
-                    acc.withdraw(amount,bal)
-                    x=acc.display()
+                    bal2=acc.withdraw(amount,bal)
+                    #x=acc.display()
                     #z2=acc.getPin()
                     #y=customer_details.query.filter_by(pin=z2).first()
                     y1=y.id
-                    c2=debit(withdraw_amt=amount,balance=x,cus_id=y1)
+                    c2=debit(withdraw_amt=amount,balance=bal2,cus_id=y1)
                     #c2=customer_details(balance=x)
                     y1=customer_details.query.get(y1)
-                    y1.balance=x
+                    y1.balance=bal2
                     #db.session.add(c1)
                     db.session.add(c2)
                     db.session.commit()
 
-                    return render_template('atm6.html',x=x)
+                    return render_template('atm6.html',x=bal2)
                 else:
                     return '<html><body><h>choose correct amount</h1></body></html>'
                 #break
@@ -389,11 +394,15 @@ def balance(option):
 #else:
     #print("you entered wrong pin.")
 
+@app.route('/logout',methods=['POST','GET'])    
+def logout():
+	if request.method=="POST":
+		session.pop('pin',None)
+		return redirect(url_for('index'))
+
 
 
 if __name__=='__main__':
-    import pdb
-    pdb.set_trace()
     db.create_all()
     app.run(debug=True)
 
