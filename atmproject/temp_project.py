@@ -104,7 +104,7 @@ class debit(db.Model):
 	Transaction_idn = db.Column(db.Integer,primary_key=True)
 	withdraw_amt=db.Column(db.Float)
 	cus_id= db.Column(db.Integer, db.ForeignKey('customer_details.id'),nullable=False)
-	balance= db.Column(db.Integer, unique=True,nullable=False)
+	balance= db.Column(db.Integer,nullable=False)
 	crt_dt = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
 	
 	#customer_details = db.relationship('customer_details',backref=db.backref('debit', lazy=True))
@@ -264,7 +264,8 @@ def verify1():
 		return redirect(url_for('error'))
 
 	if match:
-		c1=customer_details(pin=pin,accont_num=acc_num,balance=0)
+		x1=0
+		c1=customer_details(pin=pin,accont_num=acc_num,balance=x1)
 		db.session.add(c1)
 		db.session.commit()
 		return redirect(url_for('index'))
@@ -356,13 +357,21 @@ def balance(option):
 				y1=y.id
 
 				bal=y.balance
-				#if bal is None:
-					#bal2='0'
-				
-				
+				if bal==None:
+					bal2=0
+					bal1 = acc.deposit(amt,bal2)
+					c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
+					db.session.add(c1)
+					db.session.commit()
+					y1=customer_details.query.get(y1)
+					y1.balance=bal1
+					db.session.commit()
+					return render_template('atm6.html',x=bal1)
 				
 				#bal2=bal
-				bal1 = acc.deposit(amt,bal)
+				else:
+					
+					bal1 = acc.deposit(amt,bal)
 		
 				
 				#x=acc.display()
@@ -380,20 +389,20 @@ def balance(option):
 
 			
 
-				c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
+					c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
 				#db.session.add(c1)
 				#db.session.commit()
 				
 				
-				db.session.add(c1)
+					db.session.add(c1)
 				#c3=customer_details(balance=x)
 				#db.session.add(c3)
-				db.session.commit()
+					db.session.commit()
 
-				y1=customer_details.query.get(y1)
-				y1.balance=bal1
-				db.session.commit()
-				return render_template('atm6.html',x=bal1)
+					y1=customer_details.query.get(y1)
+					y1.balance=bal1
+					db.session.commit()
+					return render_template('atm6.html',x=bal1)
 				#break
 			elif option == 'withdrawl':
 				#"reading withdraw"
