@@ -194,7 +194,7 @@ class ATM:
 		return self.balance
 
 	#@app.route('/deposit',methods=['POST','GET'])
-	def deposit(self,amount,bal):
+	def deposit(self,amount,bal=0):
 
 		"Deposits are accepted"
 
@@ -358,8 +358,8 @@ def balance(option):
 
 				bal=y.balance
 				if bal==None:
-					bal2=0
-					bal1 = acc.deposit(amt,bal2)
+				
+					bal1 = acc.deposit(amt)
 					c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
 					db.session.add(c1)
 					db.session.commit()
