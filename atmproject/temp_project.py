@@ -17,7 +17,7 @@ app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path
 
 app.config['SQLALCHEMY_ECHO'] = True
 #app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/MyTestDb?driver=SQL+Server?trusted_connection=yes"
-app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/atm4?driver=SQL+Server?trusted_connection=yes"
+app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://DESKTOP-URHHJQ5/atm6?driver=SQL+Server?trusted_connection=yes"
 
 #app.config['SQLALCHEMY_DATABASE_URI']="mssql+pyodbc://MySQLServerName/MyTestDb?driver=SQL+Server?trusted_connection=yes"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
@@ -60,29 +60,30 @@ db=SQLAlchemy(app)
 class customer_details(db.Model) :
 	id = db.Column( db.Integer,primary_key=True)
 	pin = db.Column(db.Integer,unique=True)
-	accont_num=db.Column(db.Integer)
-	balance = db.Column(db.Integer)
+	account_num=db.Column(db.Integer)
+	#balance = db.Column(db.Integer)
 
 	#credit = db.relationship('customer_details',order_by=customer_details.id,lazy='SELECT',backref=db.backref('credit', lazy=True))
 
-	def __init__(self,pin,balance=None,accont_num=None):
+	def __init__(self,pin,account_num=None):
 
 	   #self.name = name
 	   #self.balance =balance
 	
 	   
 	   self.pin = pin
-	   if accont_num:
-	   	self.accont_num=accont_num
-	   if balance:
-	   	self.balance=balance
+	   if account_num:
+	   	self.account_num=account_num
+	   #if balance:
+	   	#self.balance=balance
 	   
 
-class credit(db.Model):
+class Transactions(db.Model):
 	Transaction_idn = db.Column(db.Integer,primary_key=True)
 	deposit_amt=db.Column(db.Float)
 	#balance= db.Column(db.Integer, db.ForeignKey('customer_details.balance'),nullable=False)
-	balance= db.Column(db.Integer,nullable=False)
+	withdraw_amt=db.Column(db.Float)
+	balance= db.Column(db.Integer)
 	cus_id= db.Column(db.Integer, db.ForeignKey('customer_details.id'),nullable=False)
 	crt_dt = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
 	#customer_details = db.relationship('credit',order_by=customer_details.id,backref=db.backref('customer_details', lazy=True))
@@ -91,29 +92,32 @@ class credit(db.Model):
 
 	#category = db.relationship('Category',backref=db.backref('posts', lazy=True))
 
-	def __init__(self,deposit_amt,balance,cus_id):
-	
-		self.deposit_amt=deposit_amt
-		self.balance=balance
+	def __init__(self,cus_id,deposit_amt=None,withdraw_amt=None,balance=None):
+		if deposit_amt:
+			self.deposit_amt=deposit_amt
+		elif withdraw_amt:
+			self.withdraw_amt=withdraw_amt
 		self.cus_id=cus_id
+		if balance:
+			self.balance=balance
 		#self.Transaction_idn=Transaction_idn
 		#self.id1=id1
 
 
-class debit(db.Model):
-	Transaction_idn = db.Column(db.Integer,primary_key=True)
-	withdraw_amt=db.Column(db.Float)
-	cus_id= db.Column(db.Integer, db.ForeignKey('customer_details.id'),nullable=False)
-	balance= db.Column(db.Integer,nullable=False)
-	crt_dt = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
+#class debit(db.Model):
+	#Transaction_idn = db.Column(db.Integer,primary_key=True)
+	#withdraw_amt=db.Column(db.Float)
+	#cus_id= db.Column(db.Integer, db.ForeignKey('customer_details.id'),nullable=False)
+	#balance= db.Column(db.Integer,nullable=False)
+	#crt_dt = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
 	
 	#customer_details = db.relationship('customer_details',backref=db.backref('debit', lazy=True))
 	
 
-	def __init__(self,withdraw_amt,balance,cus_id):
-		self.withdraw_amt=withdraw_amt
-		self.balance=balance
-		self.cus_id=cus_id
+	#def __init__(self,withdraw_amt,balance,cus_id):
+		#self.withdraw_amt=withdraw_amt
+		#self.balance=balance
+		#self.cus_id=cus_id
 
 
 	
@@ -159,10 +163,11 @@ class ATM:
 			#return True
 		#else:
 			#return False
-	def validate_acc(self,accont_num):
-		self.accont_num=accont_num
+	def validate_acc(self,account_num):
+		"validate account"
+		self.account_num=account_num
 		acc_regex=re.compile(r'^[1-4]+\d{7}$')
-		searcher_output=acc_regex.search(accont_num)
+		searcher_output=acc_regex.search(account_num)
 		return searcher_output
 
 	def getBalance(self):
@@ -260,12 +265,14 @@ def verify1():
 	try:
 		match=mo1.group(0)
 		match=mo2.group(0)
-	except e:
+		import pdb 
+		pdb.set_trace()
+	except:
 		return redirect(url_for('error'))
 
 	if match:
-		x1=0
-		c1=customer_details(pin=pin,accont_num=acc_num,balance=x1)
+		
+		c1=customer_details(pin=pin,account_num=acc_num)
 		db.session.add(c1)
 		db.session.commit()
 		return redirect(url_for('index'))
@@ -315,7 +322,7 @@ def verify():
 			except TypeError:
 				print ("Type Error")
 				#logging.debug('users problem')
-			except e : 
+			except: 
 				print("please enter the correct pin.")
 				return redirect(url_for('error'))
 			if match:
@@ -355,55 +362,43 @@ def balance(option):
 				y=customer_details.query.filter_by(pin=z1).first()
 				#bal=y.balance
 				y1=y.id
+				c2=Transactions(cus_id=y1)
+				c3=Transactions.query.filter_by(cus_id=y1).first()
+				if c3:
+					y2=Transactions.query.filter_by(cus_id=y1).first()
+					bal=y2.balance
 
-				bal=y.balance
-				if bal==None:
-				
-					bal1 = acc.deposit(amt)
-					c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
-					db.session.add(c1)
-					db.session.commit()
-					y1=customer_details.query.get(y1)
-					y1.balance=bal1
-					db.session.commit()
-					return render_template('atm6.html',x=bal1)
-				
-				#bal2=bal
+					if bal==None:
+						bal1 = acc.deposit(amt)
+						c1=Transactions(deposit_amt=amt,cus_id=y1)
+						db.session.add(c1)
+						db.session.commit()
+						yz=Transactions.query.get(y1)
+						yz.balance=bal1
+						db.session.commit()
+						return render_template('atm6.html',x=bal1)
+
+					else:
+						bal1 = acc.deposit(amt,bal)
+						c1=Transactions(deposit_amt=amt,cus_id=y1)
+						db.session.add(c1)
+						db.session.commit()
+						yz=Transactions.query.get(y1)
+						yz.balance=bal1
+						db.session.commit()
+						return render_template('atm6.html',x=bal1)
+
 				else:
-					
-					bal1 = acc.deposit(amt,bal)
-		
-				
-				#x=acc.display()
-				#z1=verify()
-				
-				
-				#z=1
-
-				#y=customer_details.query.filter_by(pin=z1).first()
-				
-				#y2=customer_details.query.get(id)
-		
-	
-
-
-			
-
-					c1=credit(deposit_amt=amt,balance=bal1,cus_id=y1)
-				#db.session.add(c1)
-				#db.session.commit()
-				
-				
+					bal1 = acc.deposit(amt)
+					c1=Transactions(deposit_amt=amt,cus_id=y1)
 					db.session.add(c1)
-				#c3=customer_details(balance=x)
-				#db.session.add(c3)
 					db.session.commit()
-
-					y1=customer_details.query.get(y1)
-					y1.balance=bal1
+					yz=Transactions.query.get(y1)
+					yz.balance=bal1
 					db.session.commit()
 					return render_template('atm6.html',x=bal1)
-				#break
+					
+				
 			elif option == 'withdrawl':
 				#"reading withdraw"
 	   
@@ -414,8 +409,12 @@ def balance(option):
 				z2=acc.getPin()
 				#import pdb
 				#pdb.set_trace()
-				y=customer_details.query.filter_by(pin=z2).first()
-				bal=int(y.balance)
+				y2=customer_details.query.filter_by(pin=z2).first()
+				y1=y2.id
+				y=Transactions.query.filter_by(cus_id=y1).first()
+				bal1=y.balance
+				bal=int(bal1)
+
 				#amt1=credit.query.filter_by(Transaction_idn=y1).first()
 				#bal=amt1.balance
 				if amt<bal:
@@ -425,18 +424,21 @@ def balance(option):
 					#x=acc.display()
 					#z2=acc.getPin()
 					#y=customer_details.query.filter_by(pin=z2).first()
-					y1=y.id
-					c2=debit(withdraw_amt=amount,balance=bal2,cus_id=y1)
+					y1=y2.id
+					c2=Transactions(withdraw_amt=amount,cus_id=y1)
 					#c2=customer_details(balance=x)
-					y1=customer_details.query.get(y1)
-					y1.balance=bal2
+					yz=Transactions.query.get(y1)
+					yz.balance=bal2
 					#db.session.add(c1)
 					db.session.add(c2)
 					db.session.commit()
 
 					return render_template('atm6.html',x=bal2)
+				elif bal==None:
+					return render_template('atm9.html')
+
 				else:
-					return '<html><body><h>choose correct amount</h1></body></html>'
+					return render_template('atm9.html')
 				#break
 						
 			elif option == 'balance':
@@ -444,7 +446,9 @@ def balance(option):
 				#x=acc.display()
 				y4=acc.getPin()
 				y=customer_details.query.filter_by(pin=y4).first()
-				x=y.balance
+				y2=y.id
+				y3=Transactions.query.filter_by(cus_id=y2).first()
+				x=y3.bal
 				return render_template('atm6.html',x=x)
 				#break
 			else:
