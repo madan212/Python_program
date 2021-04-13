@@ -2,7 +2,7 @@
 	 prev_bal = balance(balance))
 	 new_bal = balance(deposit(4000))
 	 assert(new_bal=prev_bal+4000)'''
-from temp_project import *
+from temp_project1 import *
 import unittest
 class Testclass01(unittest.TestCase):
 	#def setUp(self):

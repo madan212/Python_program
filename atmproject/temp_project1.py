@@ -268,8 +268,8 @@ def verify1():
 		mo2=acc.validate_acc(acc_num)
 
 	try:
-		match=mo1.group(0)
-		match=mo2.group(0)
+		match=mo1.group(0),mo2.group(0)
+		#match=mo2.group(0)
 		import pdb 
 		pdb.set_trace()
 	except:
