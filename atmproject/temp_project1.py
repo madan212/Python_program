@@ -9,8 +9,8 @@ from datetime import datetime
 from sqlalchemy import *
 
 app=Flask(__name__,instance_relative_config=True)
-#import pdb
-#pdb.set_trace()
+
+
 
 #app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'C:/Users/ADMIN/Documents/SQL Server Management Studio/atm1.sql'),)
 app.config.from_mapping(SECRET_KEY='dev',DATABASE=os.path.join(app.instance_path,'F:/Program Files/Microsoft SQL Server/MSSQL15.MSSQLSERVER/MSSQL'))
@@ -180,20 +180,12 @@ class ATM:
 	def getPin(self):
 
 		"waiting for user response"
-		#import pdb
-		#pdb.set_trace()
-		#self.balance=db.session.query(customer_details).filter(customer_details.pin==self.pin)
-		#if self.pin:
+		
 		return self.pin
-		#else : 
-			#db.session.
-
-	#@app.route('/withdrawl',methods=['POST','GET'])
+		
 	def withdraw(self,amount,bal):
 
 		"aceesing the amount to customer"
-		#amt1=credit.query.filter_by(Transaction_idn='1').first()
-		#balance=amt1.balance
 
 		self.balance = bal-amount
 		
@@ -210,11 +202,6 @@ class ATM:
 	def display(self):
 
 		"providing the final results"
-		#db.session.add(customer_details(balance=self.balance))
-		##db.session.commit()
-		#import pdb
-		#pdb.set_trace()
-		#self.balance=db.session.query(customer_details).filter(customer_details.pin==3457)
 		
 		return self.balance
 
@@ -246,8 +233,7 @@ def deposit():
 
 @app.route('/withdrawl',methods=['POST','GET'])
 def withdrawl():
-	#import pdb
-	#pdb.set_trace()
+	
 	if request.method=='GET':
 		#amount==request.form['amount']
 		#bal-=amount
@@ -256,10 +242,12 @@ def withdrawl():
 		return res
 @app.route('/registration_form',methods=['GET','POST'])
 def registration():
-	if reuest.method==['POST']:
-		return render_template('atm7.html')
+	
+	return render_template('atm7.html')
 @app.route('/verify1',methods=['POST','GET'])
 def verify1():
+	import pdb
+	pdb.set_trace()
 	if request.method=="POST":
 		match=''
 		acc_num=request.form['account_number']
@@ -270,24 +258,25 @@ def verify1():
 	try:
 		match=mo1.group(0),mo2.group(0)
 		#match=mo2.group(0)
-		import pdb 
-		pdb.set_trace()
 	except:
-		return redirect(url_for('error'))
+		#return redirect(url_for('error'))
+		return render_template('atm8.html')
 
 	if match:
 		
 		c1=customer_details(pin=pin,account_num=acc_num)
+
 		db.session.add(c1)
 		db.session.commit()
+		c2=customer_details.query.filter_by(pin=pin).first()
+		id1=c2.id
+		c3=Transactions(cus_id=id1)
+		db.session.add(c3)
+		db.session.commit()
 		return redirect(url_for('index'))
-	else:
-		return render_template('atm8.html')
 	
 @app.route('/verify',methods=['POST','GET'])
 def verify():
-	#import pdb
-	#pdb.set_trace()
 	for i in range(1,3):
 		if request.method=='POST':
 			match = ''
@@ -322,104 +311,104 @@ def verify():
 @app.route('/balance/<option>',methods=['POST','GET'])
 def balance(option):
 	if request.method=='POST':
-		while 1:
-			import pdb
-			pdb.set_trace()
-			if option == 'deposit':
-				#"For deposit"
-				amt=int(request.form['amount'])
-				
-				z1=acc.getPin()
+		#while 1:
 			
-				y=customer_details.query.filter_by(pin=z1).first()
-				#bal=y.balance
-				y1=y.id
-				c2=Transactions(cus_id=y1)
-				c3=Transactions.query.filter_by(cus_id=y1).first()
-				if c3:
-					y2=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
-					bal=y2.balance
-
-					if bal:
-						bal1 = acc.deposit(amt,bal)
-						c1=Transactions(deposit_amt=amt,cus_id=y1,balance=bal1)
-						db.session.add(c1)
-						db.session.commit()
-						#yz=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
-						#z.balance=bal1
-						#db.session.commit()
-						return render_template('atm6.html',x=bal1)
-
-					else:
-						bal3 = acc.deposit(amt)
-						c1=Transactions(deposit_amt=amt,cus_id=y1,balance=bal3)
-						db.session.add(c1)
-						db.session.commit()
-						#yz=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
-						#yz.balance=bal
-						db.session.commit()
-						return render_template('atm6.html',x=bal3)
-
-				else:
-					c4=Transactions(cus_id=y1)
-					db.session.add(c4)
-					db.session.commit()
-					return render_template('atm.html')
-					
-				
-			elif option == 'withdrawl':
-				#"reading withdraw"
-	   
-				amt=int(request.form['amount'])
-				
-				z2=acc.getPin()
-				
-				y2=customer_details.query.filter_by(pin=z2).first()
-				y1=y2.id
-				y3=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
-				bal=y3.balance
-				bal1=int(bal)
-				if amt<bal1:
-					amount=amt
-
-					bal2=acc.withdraw(amount,bal1)
-					#x=acc.display()
-					#z2=acc.getPin()
-					#y=customer_details.query.filter_by(pin=z2).first()
-					#y1=y2.id
-					c2=Transactions(withdraw_amt=amount,cus_id=y1,balance=bal2)
-					#c2=customer_details(balance=x)
-					#yz=Transactions.query.order_by(Transactions.Transaction_idn.desc()).limit(1).first()
-					#yz.balance=bal2
-					#db.session.add(c1)
-					db.session.add(c2)
-					db.session.commit()
-
-					return render_template('atm6.html',x=bal2)
-				elif bal==None:
-					return render_template('atm10.html')
-					#return '<html><body><h>choose correct amount</h1></body></html>'
-
-				else:
-					return render_template('atm9.html')
-				#break
-						
-			elif option == 'balance':
-				"for balance enquiry"
-				#x=acc.display()
-				y4=acc.getPin()
-				y=customer_details.query.filter_by(pin=y4).first()
-				y2=y.id
-				y3=Transactions.query.filter_by(cus_id=y2).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
-				x=y3.balance
-				return render_template('atm6.html',x=x)
-				#break
-			else:
-				exit()
+		if option == 'deposit':
+			#"For deposit"
+			
+			amt=int(request.form['amount'])
+			
+			z1=acc.getPin()
 		
+			y=customer_details.query.filter_by(pin=z1).first()
+			#bal=y.balance
+			y1=y.id
+			c2=Transactions(cus_id=y1)
+			c3=Transactions.query.filter_by(cus_id=y1).first()
+			if c3:
+				y2=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
+				bal=y2.balance
 
+				if bal:
+					bal1 = acc.deposit(amt,bal)
+					c1=Transactions(deposit_amt=amt,cus_id=y1,balance=bal1)
+					db.session.add(c1)
+					db.session.commit()
+					#yz=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
+					#z.balance=bal1
+					#db.session.commit()
+					return render_template('atm6.html',x=bal1)
+
+				else:
+					bal3 = acc.deposit(amt)
+					c1=Transactions(deposit_amt=amt,cus_id=y1,balance=bal3)
+					db.session.add(c1)
+					db.session.commit()
+					#yz=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
+					#yz.balance=bal
+					db.session.commit()
+					return render_template('atm6.html',x=bal3)
+
+			#else:
+				#c4=Transactions(cus_id=y1)
+				#db.session.add(c4)
+				#db.session.commit()
+				#return render_template('atm.html')
+				
+			
+		elif option == 'withdrawl':
+			#"reading withdraw"
+   
+			amt=int(request.form['amount'])
+			
+			z2=acc.getPin()
+			
+			y2=customer_details.query.filter_by(pin=z2).first()
+			y1=y2.id
+			y3=Transactions.query.filter_by(cus_id=y1).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
+			bal=y3.balance
+			bal1=int(bal)
+			if amt<bal1:
+				amount=amt
+
+				bal2=acc.withdraw(amount,bal1)
+				#x=acc.display()
+				#z2=acc.getPin()
+				#y=customer_details.query.filter_by(pin=z2).first()
+				#y1=y2.id
+				c2=Transactions(withdraw_amt=amount,cus_id=y1,balance=bal2)
+				#c2=customer_details(balance=x)
+				#yz=Transactions.query.order_by(Transactions.Transaction_idn.desc()).limit(1).first()
+				#yz.balance=bal2
+				#db.session.add(c1)
+				db.session.add(c2)
+				db.session.commit()
+
+				return render_template('atm6.html',x=bal2)
+			elif bal==0:
+				return render_template('atm10.html')
+				#return '<html><body><h>choose correct amount</h1></body></html>'
+
+			else:
+				return render_template('atm9.html')
+			#break
+					
+		elif option == 'balance':
+			"for balance enquiry"
+			#x=acc.display()
+			y4=acc.getPin()
+			y=customer_details.query.filter_by(pin=y4).first()
+			y2=y.id
+			y3=Transactions.query.filter_by(cus_id=y2).order_by(Transactions.Transaction_idn.desc()).limit(1).first()
+			x=y3.balance
+			return render_template('atm6.html',x=x)
+			#break
 		else:
-			print("sorry we are unable to process this transaction")
+			exit()
+	
+
+	else:
+		print("sorry we are unable to process this transaction")
 
 #else:
 	#print("you entered wrong pin.")
