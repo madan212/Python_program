@@ -127,7 +127,8 @@ class Transactions(db.Model):
 
 @app.route('/error')
 def error():
-	return'<html><body><h>you entered wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
+	#return'<html><body><h>you entered wrong pin</h><a href="http://localhost:5000/login">retry once</a></body></html>'
+	return render_template('atm11.html')
 
 @app.route('/')
 def index():
