@@ -414,7 +414,7 @@ def balance(option):
 #else:
 	#print("you entered wrong pin.")
 
-@app.route('/logout',methods=['POST','GET'])    
+@app.route('/logout',methods=['POST','GET'])      
 def logout():
 	if request.method=="POST":
 		session.pop('pin',None)
