@@ -76,13 +76,17 @@ def menu():
  
  
 
-@app.route('/api/create',methods=['POST','GET'])
+@app.route('/create',methods=['POST','GET'])
 def create():
 
-    "taking input from local file and creating and storing the data in databases "
+    "Taking input from local file and creating and storing the data in databases "
     
     if request.method=='GET':
         #data1=request.args.get('file')
+
+        """if we need we can take input from UI by using URL and also we get input by using file path,
+        but now we considered using file path"""
+
         with open('C:/Users/ADMIN/Desktop/js.json','r') as f:
             data1=f.read()
         data=json.loads(data1)
@@ -133,7 +137,7 @@ def create():
 
 
 
-@app.route('/api/update/<audioFileType>/<audioFileID>',methods=['PUT'])
+@app.route('/update/<audioFileType>/<audioFileID>',methods=['PUT'])
 def update(audioFileType, audioFileID):
 
     "updating the existing file which data is stored in databases"
@@ -172,7 +176,7 @@ def update(audioFileType, audioFileID):
 
           
 
-@app.route('/api/delete/<audioFileType>/<audioFileID>', methods=["DELETE"])
+@app.route('/delete/<audioFileType>/<audioFileID>', methods=["DELETE"])
 def delete_api(audioFileType, audioFileID):
 
     "terminating the data which will be called"
@@ -193,7 +197,7 @@ def delete_api(audioFileType, audioFileID):
     return "The request is invalid: 400 bad request", 400
 
     
-@app.route("/api/get/<audioFileType>", methods=["GET"], defaults={"audioFileID": None})
+@app.route("/get/<audioFileType>", methods=["GET"], defaults={"audioFileID": None})
 def get_api(audioFileType, audioFileID):
 
     "getting the data from data bases choosing by passing argumets"
